@@ -1,0 +1,86 @@
+.admin-navbar {
+  height: 60px;
+  background-color: white;
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  padding: 0 30px;
+  border-bottom: 1px solid #eee;
+  /* Eliminamos position: fixed y width: calc */
+}
+
+/* Navbar.css */
+.admin-navbar {
+  height: 60px;
+  background-color: white;
+  display: flex;
+  align-items: center;
+  justify-content: flex-end; /* Esto envía el botón a la derecha */
+  padding: 0 30px;
+  border-bottom: 1px solid #eee;
+  width: 100%; /* Ocupa el ancho disponible dentro del flex column */
+}
+
+.btn-logout-top {
+  background-color: transparent;
+  border: 1px solid #e53e3e; /* Borde rojo */
+  color: #e53e3e;           /* Texto rojo */
+  padding: 8px 16px;
+  border-radius: 6px;
+  cursor: pointer;
+  font-weight: 600;
+  transition: all 0.3s ease;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.btn-logout-top:hover {
+  background-color: #e53e3e; /* Fondo rojo al pasar el mouse */
+  color: white;
+}
+
+.admin-navbar {
+  display: flex;
+  justify-content: space-between; /* Separa el saludo del botón */
+  align-items: center;
+  padding: 0 30px;
+  background-color: #ffffff;
+  height: 70px;
+  border-bottom: 1px solid #eef2f0;
+  font-family: 'Montserrat', sans-serif;
+}
+
+.navbar-user-info {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  color: #444;
+}
+
+.navbar-user-info i {
+  color: #76a071; /* El verde del centro */
+  font-size: 2rem;
+}
+
+.navbar-user-info strong {
+  color: #2d5a27;
+  text-transform: capitalize;
+}
+
+.btn-logout-top {
+  background: none;
+  border: 1px solid #ff4d4d;
+  color: #ff4d4d;
+  padding: 8px 15px;
+  border-radius: 8px;
+  cursor: pointer;
+  font-weight: 600;
+  transition: all 0.3s;
+  font-family: 'Montserrat', sans-serif;
+}
+
+.btn-logout-top:hover {
+  background-color: #ff4d4d;
+  color: white;
+}

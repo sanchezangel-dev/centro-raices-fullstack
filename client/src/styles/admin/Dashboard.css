@@ -1,0 +1,24 @@
+.dashboard-container {
+  /* MUY IMPORTANTE: El margen izquierdo debe ser igual al ancho del sidebar */
+  margin-left: 40px; 
+  padding: 40px;
+  width: calc(100% - 250px); /* Ocupa solo el resto del ancho */
+  background-color: #f9fbf9;
+  min-height: 100vh;
+}
+
+.stats-grid {
+  display: grid;
+  /* Las tarjetas se ajustan solas sin salirse de la pantalla */
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); 
+  gap: 25px;
+  margin-top: 30px;
+}
+
+.stat-card {
+  background: white;
+  padding: 25px;
+  border-radius: 12px;
+  box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+  border-top: 5px solid #2E5A31;
+}

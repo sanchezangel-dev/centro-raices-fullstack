@@ -1,0 +1,198 @@
+/* Contenedor Principal */
+.profesionales-container {
+    padding: 20px;
+    max-width: 1200px;
+    margin: 0 auto;
+    font-family: 'Montserrat', sans-serif;
+}
+
+.title {
+    color: #333;
+    font-size: 1.8rem;
+    margin-bottom: 20px;
+    border-bottom: 2px solid #F2EDE4;
+    padding-bottom: 10px;
+}
+
+/* Tarjeta del Formulario */
+.form-card {
+    background: #fff;
+    padding: 25px;
+    border-radius: 12px;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+    margin-bottom: 30px;
+}
+
+/* Grilla de Inputs */
+.form-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 15px;
+    margin-bottom: 20px;
+}
+
+.form-grid input, 
+.form-grid select {
+    padding: 12px;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    font-size: 0.9rem;
+    outline: none;
+    transition: border-color 0.3s;
+}
+
+.form-grid input:focus, 
+.form-grid select:focus {
+    border-color: #d4cfc7; /* Un tono acorde al crema */
+}
+
+/* Sección del Switch (Checkbox) */
+.checkbox-section {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    padding: 15px;
+    background: #fdfcfb;
+    border-radius: 8px;
+    margin-bottom: 20px;
+}
+
+/* Estilo del Switch Slider */
+.switch {
+    position: relative;
+    display: inline-block;
+    width: 38px;  /* Antes 50px */
+    height: 20px; /* Antes 24px */
+}
+
+.switch input {
+    opacity: 0;
+    width: 0;
+    height: 0;
+}
+
+.slider {
+    position: absolute;
+    cursor: pointer;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: #ccc;
+    transition: .4s;
+    border-radius: 20px;
+}
+
+.slider:before {
+    position: absolute;
+    content: "";
+    height: 14px; /* Antes 18px */
+    width: 14px;  /* Antes 18px */
+    left: 3px;
+    bottom: 3px;
+    background-color: white;
+    transition: .4s;
+    border-radius: 50%;
+}
+
+input:checked + .slider {
+    background-color: #a8d5ba; 
+}
+
+input:checked + .slider:before {
+    transform: translateX(18px); 
+}
+
+.checkbox-section span {
+    font-size: 0.9rem;
+    color: #555;
+    font-weight: 500;
+}
+
+.perfil-profesional-block {
+    background-color: #F2EDE4; 
+    padding: 20px;
+    border-radius: 10px;
+    margin-bottom: 20px;
+    border-left: 5px solid #d4cfc7;
+}
+
+.perfil-profesional-block h3 {
+    margin-top: 0;
+    font-size: 1.1rem;
+    color: #555;
+    margin-bottom: 15px;
+}
+
+.animacion-fade {
+    animation: fadeIn 0.4s ease-out;
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(-10px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+/* Botón Guardar */
+.btn-guardar {
+    background-color: #333;
+    color: white;
+    padding: 12px 35px;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    font-weight: 600;
+    transition: all 0.3s ease;
+    width: auto;        
+    min-width: 180px;    
+    display: block;      
+    margin-left: auto; 
+}
+
+.btn-guardar:hover {
+    background-color: #555;
+    transform: translateY(-2px); 
+    box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+}
+
+/* Tabla */
+.table-container {
+    background: white;
+    border-radius: 12px;
+    overflow: hidden;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+}
+
+table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+thead {
+    background-color: #F2EDE4;
+}
+
+th, td {
+    padding: 15px;
+    text-align: left;
+    border-bottom: 1px solid #eee;
+}
+
+th {
+    font-weight: 600;
+    color: #666;
+}
+
+/* Botones de Acción */
+.btn-edit, .btn-delete {
+    background: none;
+    border: none;
+    cursor: pointer;
+    font-size: 1.2rem;
+    margin-right: 10px;
+    transition: transform 0.2s;
+}
+
+.btn-edit:hover, .btn-delete:hover {
+    transform: scale(1.2);
+}

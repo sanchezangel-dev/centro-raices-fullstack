@@ -1,0 +1,54 @@
+/* SELECTOR DE FECHA */
+.agenda-date-picker {
+    border: none;
+    background: transparent;
+    font-family: 'Montserrat', sans-serif;
+    font-size: 1.1rem;
+    font-weight: 700;
+    color: var(--primary);
+    cursor: pointer;
+    outline: none;
+}
+
+/* TAGS DE TIPO DE TURNO */
+.tipo-tag {
+    padding: 4px 10px;
+    border-radius: 6px;
+    font-size: 0.75rem;
+    font-weight: 700;
+    text-transform: uppercase;
+}
+.tipo-tag.admisión { background: #E3F2FD; color: #1976D2; }
+.tipo-tag.tratamiento { background: #F3E5F5; color: #7B1FA2; }
+
+/* SELECT DE ESTADO DINÁMICO */
+.estado-select {
+    border: 1px solid #ddd;
+    padding: 5px;
+    border-radius: 6px;
+    font-family: inherit;
+    font-weight: 600;
+    font-size: 0.85rem;
+}
+.estado-select.pendiente { border-left: 5px solid #ffa000; }
+.estado-select.realizado { border-left: 5px solid #4A6741; color: #4A6741; }
+.estado-select.cancelado { border-left: 5px solid #d32f2f; color: #d32f2f; }
+
+/* BOTÓN SECUNDARIO (Para el Plan) */
+.btn-secundario {
+    background: white;
+    color: var(--primary);
+    border: 2px solid var(--primary);
+    padding: 10px 20px;
+    border-radius: 8px;
+    font-weight: 700;
+    margin-right: 10px;
+    cursor: pointer;
+    transition: 0.3s;
+}
+.btn-secundario:hover { background: var(--primary-light); }
+
+.btn-group {
+    display: flex;
+    align-items: center;
+}

@@ -1,0 +1,212 @@
+.especialidades-container { 
+    padding: 40px; 
+    max-width: 1200px; /* Un poco más de aire para el grid */
+    margin: 0 auto; 
+    font-family: 'Montserrat', sans-serif; 
+}
+
+.header-config { 
+    display: flex; 
+    justify-content: space-between; 
+    align-items: center; 
+    margin-bottom: 40px; 
+}
+
+.header-config h2 { 
+    color: #2E5A31; 
+    font-size: 1.8rem;
+    font-weight: 700;
+    margin: 0;
+}
+
+/* El grid de tarjetas */
+.cards-grid { 
+    display: grid; 
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); 
+    gap: 25px; 
+}
+
+.area-card { 
+    background: #ffffff; 
+    padding: 25px; 
+    border-radius: 16px; 
+    box-shadow: 0 5px 20px rgba(0,0,0,0.06); 
+    border-top: 6px solid #2E5A31; 
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+}
+
+.card-header-actions {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 15px;
+}
+
+.card-header-actions h3 {
+    color: #2E5A31;
+    margin: 0;
+    font-size: 1.2rem;
+}
+
+/* Contenedor de las etiquetas (especialidades) */
+.tags-container { 
+    display: flex; 
+    flex-wrap: wrap; 
+    gap: 10px; 
+    margin-bottom: 25px;
+    min-height: 40px; /* Evita que la card colapse si está vacía */
+}
+
+.tag { 
+    display: inline-flex; 
+    align-items: center; 
+    gap: 8px; 
+    background: #f0f4f0; 
+    color: #2E5A31; 
+    padding: 6px 14px; 
+    border-radius: 20px; 
+    font-size: 0.85rem; 
+    font-weight: 600; 
+    border: 1px solid #d4e0d5;
+}
+
+/* Botones de acción */
+.btn-delete-tag { 
+    background: #d4e0d5; 
+    border: none; 
+    border-radius: 50%; 
+    width: 18px; 
+    height: 18px; 
+    cursor: pointer; 
+    display: flex; 
+    align-items: center; 
+    justify-content: center; 
+    font-size: 10px; 
+    color: #2E5A31; 
+    transition: all 0.2s; 
+}
+
+.btn-delete-tag:hover { 
+    background: #e53e3e; 
+    color: white; 
+}
+
+.btn-delete-area {
+    background: transparent;
+    border: none;
+    color: #cbd5e0;
+    font-size: 1.2rem;
+    cursor: pointer;
+    transition: color 0.2s;
+}
+
+.btn-delete-area:hover {
+    color: #e53e3e; 
+}
+
+/* Botones de agregar */
+.btn-add-tag { 
+    background: transparent; 
+    border: 1px dashed #2E5A31; 
+    color: #2E5A31; 
+    padding: 12px; 
+    width: 100%; 
+    border-radius: 10px; 
+    cursor: pointer; 
+    font-weight: 700; 
+    font-family: 'Montserrat', sans-serif;
+    transition: all 0.3s; 
+}
+
+.btn-add-tag:hover { 
+    background: #2E5A31; 
+    color: white; 
+}
+
+.btn-main-add { 
+    background: #2E5A31; 
+    color: white; 
+    padding: 12px 24px; 
+    border: none; 
+    border-radius: 10px; 
+    font-weight: 700; 
+    cursor: pointer; 
+    font-family: 'Montserrat', sans-serif;
+    transition: background 0.3s; 
+}
+
+.btn-main-add:hover { 
+    background: #234526; 
+}
+
+/* Estilos del Modal */
+.modal-form {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+}
+
+.modal-input {
+    width: 100%;
+    padding: 12px;
+    border: 2px solid #f0f4f0;
+    border-radius: 10px;
+    font-family: 'Montserrat', sans-serif;
+    outline: none;
+}
+
+.modal-input:focus {
+    border-color: #2E5A31;
+}
+
+.modal-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 12px;
+}
+
+.btn-cancel {
+    background: #f7fafc;
+    border: none;
+    padding: 10px 20px;
+    border-radius: 8px;
+    color: #718096;
+    font-weight: 600;
+    cursor: pointer;
+}
+
+.btn-confirm {
+    background: #2E5A31;
+    color: white;
+    border: none;
+    padding: 10px 20px;
+    border-radius: 8px;
+    font-weight: 600;
+    cursor: pointer;
+}
+
+/* Card */
+.card-header-actions h3 {
+    color: #2E5A31;
+    margin: 0;
+    font-size: 1rem; 
+    font-weight: 700;
+    letter-spacing: 0.5px; 
+}
+
+
+.tag { 
+    display: inline-flex; 
+    align-items: center; 
+    gap: 8px; 
+    background: #f0f4f0; 
+    color: #2E5A31; 
+    padding: 5px 12px; 
+    border-radius: 20px; 
+    font-size: 0.75rem;
+    font-weight: 600; 
+    border: 1px solid #d4e0d5;
+    letter-spacing: 0.3px;
+}

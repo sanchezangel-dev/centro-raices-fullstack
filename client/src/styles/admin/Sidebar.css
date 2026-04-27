@@ -1,0 +1,77 @@
+.sidebar-container {
+  width: 250px;
+  height: 100vh;
+  background-color: #2E5A31;
+  color: white;
+  padding: 25px;
+  position: fixed;
+  left: 0;
+  top: 0;
+  font-family: 'Montserrat', sans-serif;
+  box-shadow: 2px 0 10px rgba(0,0,0,0.1);
+  display: flex;
+  flex-direction: column;
+}
+
+.sidebar-title {
+  margin-bottom: 35px;
+  font-size: 1.4rem;
+  font-weight: 700;
+  border-bottom: 1px solid rgba(255,255,255,0.1);
+  padding-bottom: 15px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.sidebar-title i {
+  color: #76a071; 
+}
+
+.sidebar-nav {
+  display: flex;
+  flex-direction: column;
+  gap: 8px; 
+}
+
+.sidebar-link {
+  color: rgba(255, 255, 255, 0.8); 
+  text-decoration: none;
+  font-size: 1rem;
+  padding: 12px 15px;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  transition: all 0.3s ease;
+  font-weight: 500;
+}
+
+.sidebar-link i {
+  margin-right: 12px;
+  width: 25px;
+  text-align: center;
+  color: #76a071;
+  font-size: 1.1rem;
+  transition: all 0.3s ease;
+}
+
+
+.sidebar-link:hover {
+  background-color: rgba(255, 255, 255, 0.1);
+  color: white;
+}
+
+.sidebar-link:hover i {
+  color: #ffffff; 
+}
+
+
+.sidebar-link.active {
+  background-color: #76a071; 
+  color: white;
+  font-weight: 700;
+}
+
+.sidebar-link.active i {
+  color: white; 
+}
