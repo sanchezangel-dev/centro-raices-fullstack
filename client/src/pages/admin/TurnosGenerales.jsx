@@ -7,7 +7,7 @@ const TurnosGenerales = () => {
   const [busqueda, setBusqueda] = useState("");
   const [filtroEstado, setFiltroEstado] = useState("Todos");
 
-  const API_URL = 'http://localhost:5000/api/turnos';
+  const API_URL = 'https://centro-raices-fullstack.onrender.com/api/turnos';
 
   useEffect(() => {
     const obtenerTodosLosTurnos = async () => {

@@ -15,7 +15,7 @@ const Pacientes = () => {
     cudDiagnostico: '', cudDescripcion: '', notas: ''
   });
 
-  const API_URL = 'http://localhost:5000/api/pacientes';
+  const API_URL = 'https://centro-raices-fullstack.onrender.com/api/pacientes';
 
   useEffect(() => { obtenerPacientes(); }, []);
 

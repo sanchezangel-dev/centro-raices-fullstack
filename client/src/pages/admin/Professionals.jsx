@@ -33,7 +33,7 @@ const Profesionales = () => {
 
   const fetchProfesionales = async () => {
     try {
-      const res = await axios.get('http://localhost:5000/api/profesionales');
+      const res = await axios.get('https://centro-raices-fullstack.onrender.com/api/profesionales');
       setProfesionales(res.data);
     } catch (error) {
       mostrarAviso("Error de conexión", "error");
@@ -67,10 +67,10 @@ const Profesionales = () => {
 
     try {
       if (editando) {
-        await axios.put(`http://localhost:5000/api/profesionales/${idEditar}`, datosAEnviar);
+        await axios.put(`https://centro-raices-fullstack.onrender.com/api/profesionales/${idEditar}`, datosAEnviar);
         mostrarAviso("¡Datos actualizados!", "exito");
       } else {
-        await axios.post('http://localhost:5000/api/profesionales', datosAEnviar);
+        await axios.post('https://centro-raices-fullstack.onrender.com/api/profesionales', datosAEnviar);
         mostrarAviso("¡Registro exitoso!", "exito");
       }
       limpiarFormulario();
@@ -116,7 +116,7 @@ const Profesionales = () => {
 
   const confirmarEliminacion = async () => {
     try {
-      await axios.delete(`http://localhost:5000/api/profesionales/${modalConfirmar.id}`);
+      await axios.delete(`https://centro-raices-fullstack.onrender.com/api/profesionales/${modalConfirmar.id}`);
       mostrarAviso("Baja procesada", "exito");
       setModalConfirmar({ abierto: false, id: null, nombre: '' });
       fetchProfesionales();

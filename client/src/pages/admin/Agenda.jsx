@@ -25,7 +25,7 @@ const Agenda = () => {
     notas: ''
   });
 
-  const API_URL = 'http://localhost:5000/api/turnos';
+  const API_URL = 'https://centro-raices-fullstack.onrender.com/api/turnos';
 
   useEffect(() => {
     obtenerTurnos();
@@ -44,8 +44,8 @@ const Agenda = () => {
   const cargarSelectores = async () => {
     try {
       const [resP, resProf] = await Promise.all([
-        axios.get('http://localhost:5000/api/pacientes'),
-        axios.get('http://localhost:5000/api/profesionales')
+        axios.get('https://centro-raices-fullstack.onrender.com/api/pacientes'),
+        axios.get('https://centro-raices-fullstack.onrender.com/api/profesionales')
       ]);
       setPacientes(resP.data);
       setProfesionales(resProf.data);
