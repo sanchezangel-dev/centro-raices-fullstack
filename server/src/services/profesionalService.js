@@ -1,37 +1,67 @@
 const Profesional = require('../models/profesionalModel');
 
 const crearProfesional = async (datos) => {
-    try {
-        const nuevo = new Profesional(datos);
-        return await nuevo.save();
-    } catch (error) {
-        if (error.code === 11000) throw new Error('El DNI ya existe');
-        throw error;
-    }
+  try {
+    const nuevo = new Profesional(datos);
+    const guardado = await nuevo.save();
+    // Poblamos el objeto recién creado para que el Front lo reciba perfecto de entrada
+    return await Profesional.findById(guardado._id).populate('area').populate('especialidades');
+  } catch (error) {
+    if (error.code === 11000) throw new Error('El DNI o el Correo electrónico ya existe');
+    throw error;
+  }
 };
 
 const obtenerTodos = async () => {
-    return await Profesional.find({ activo: true }).sort({ apellido: 1 });
+  try {
+    return await Profesional.find({ activo: true })
+      .populate('area')
+      .populate('especialidades')
+      .sort({ apellido: 1 });
+  } catch (error) {
+    throw new Error('Error al obtener la lista de profesionales: ' + error.message);
+  }
 };
 
 const obtenerPorId = async (id) => {
-    const profesional = await Profesional.findById(id);
+  try {
+    const profesional = await Profesional.findById(id)
+      .populate('area')
+      .populate('especialidades');
+      
     if (!profesional) throw new Error('No encontrado');
     return profesional;
+  } catch (error) {
+    throw error;
+  }
 };
 
 const actualizarProfesional = async (id, datosNuevos) => {
-    return await Profesional.findByIdAndUpdate(id, datosNuevos, { new: true, runValidators: true });
+  try {
+    // Buscamos, editamos y poblamos de una sola vez
+    return await Profesional.findByIdAndUpdate(id, datosNuevos, { 
+      new: true, 
+      runValidators: true 
+    })
+    .populate('area')
+    .populate('especialidades');
+  } catch (error) {
+    throw error;
+  }
 };
 
 const eliminarProfesional = async (id) => {
+  try {
     return await Profesional.findByIdAndUpdate(id, { activo: false }, { new: true });
+  } catch (error) {
+    throw error;
+  }
 };
 
-module.exports = { 
-    crearProfesional, 
-    obtenerTodos, 
-    obtenerPorId, 
-    actualizarProfesional, 
-    eliminarProfesional 
+module.exports = {
+  crearProfesional,
+  obtenerTodos,
+  obtenerPorId,
+  actualizarProfesional,
+  eliminarProfesional
 };
