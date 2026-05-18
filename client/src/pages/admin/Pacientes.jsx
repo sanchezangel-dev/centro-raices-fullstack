@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
+import Button from '../../components/Common/Button';
 import '../../styles/admin/Pacientes.css';
 
 const Pacientes = () => {
@@ -41,7 +42,6 @@ const Pacientes = () => {
     setForm({ ...form, [name]: type === 'checkbox' ? checked : value });
   };
 
-  // Función Eliminar (Baja lógica/física según tu backend)
   const eliminarPaciente = async (id) => {
     if (window.confirm("¿Estás seguro de eliminar este paciente?")) {
       try {
@@ -56,12 +56,20 @@ const Pacientes = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+
+    // FORMATEO A MAYÚSCULAS: Forzamos que nombre y apellido viajen limpios en mayúscula a la BD
+    const datosAEnviar = {
+      ...form,
+      nombre: form.nombre.trim().toUpperCase(),
+      apellido: form.apellido.trim().toUpperCase()
+    };
+
     try {
       if (modoEdicion) {
-        await axios.put(`${API_URL}/${pacienteSeleccionado._id}`, form);
+        await axios.put(`${API_URL}/${pacienteSeleccionado._id}`, datosAEnviar);
         alert('¡Datos actualizados correctamente! 🔄');
       } else {
-        await axios.post(API_URL, form);
+        await axios.post(API_URL, datosAEnviar);
         alert('¡Paciente registrado con éxito! 🎉');
       }
       cerrarModal();
@@ -137,7 +145,7 @@ const Pacientes = () => {
           <tbody>
             {pacientes.map(p => (
               <tr key={p._id}>
-                <td className="font-bold">{p.apellido.toUpperCase()}, {p.nombre}</td>
+                <td className="font-bold">{p.apellido.toUpperCase()}, {p.nombre.toUpperCase()}</td>
                 <td>{p.dni}</td>
                 <td>{calcularEdad(p.fechaNacimiento)}</td>
                 <td>
@@ -226,9 +234,14 @@ const Pacientes = () => {
 
               <div className="form-group mt-4"><label>Notas Adicionales</label><textarea name="notas" value={form.notas} onChange={handleChange} rows="2"></textarea></div>
 
+              {/* REEMPLAZO CON TU COMPONENTE REUTILIZABLE BUTTON */}
               <div className="modal-footer">
-                <button type="button" className="btn-cancel" onClick={cerrarModal}>Cancelar</button>
-                <button type="submit" className="btn-save">{modoEdicion ? 'Actualizar' : 'Guardar'}</button>
+                <Button type="button" className="btn-cancel" onClick={cerrarModal}>
+                  Cancelar
+                </Button>
+                <Button type="submit" className="btn-save">
+                  {modoEdicion ? 'Actualizar' : 'Guardar'}
+                </Button>
               </div>
             </form>
           </div>
@@ -244,7 +257,7 @@ const Pacientes = () => {
               <button className="btn-cerrar" onClick={cerrarModal}>&times;</button>
             </div>
             <div className="detail-grid">
-              <div className="detail-item"><strong>PACIENTE:</strong> {pacienteSeleccionado.apellido.toUpperCase()}, {pacienteSeleccionado.nombre}</div>
+              <div className="detail-item"><strong>PACIENTE:</strong> {pacienteSeleccionado.apellido.toUpperCase()}, {pacienteSeleccionado.nombre.toUpperCase()}</div>
               <div className="detail-item"><strong>DNI:</strong> {pacienteSeleccionado.dni}</div>
               <div className="detail-item"><strong>EDAD:</strong> {calcularEdad(pacienteSeleccionado.fechaNacimiento)}</div>
               <div className="detail-item"><strong>TELÉFONO:</strong> {pacienteSeleccionado.telefono || '-'}</div>

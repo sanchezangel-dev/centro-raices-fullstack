@@ -302,7 +302,7 @@ nombre: p.nombre || '',
                 <td>{p.matricula || '-'}</td>
                 <td className="actions-cell">
                   {/* ACCIONES COMPACTAS */}
-                  <button className="btn-edit" style={{ background: '#0288d1', marginRight: '5px' }} onClick={() => setModalDetalle({ abierto: true, profesional: p })} title="Ver Detalles">
+                  <button className="btn-edit" style={{ marginRight: '5px' }} onClick={() => setModalDetalle({ abierto: true, profesional: p })} title="Ver Detalles">
                     <i className="fas fa-eye"></i>
                   </button>
                   <button className="btn-edit" onClick={() => prepararEdicion(p)} title="Editar">
