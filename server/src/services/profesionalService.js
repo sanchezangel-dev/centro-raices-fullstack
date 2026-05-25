@@ -14,7 +14,7 @@ const crearProfesional = async (datos) => {
 
 const obtenerTodos = async () => {
   try {
-    return await Profesional.find({ activo: true })
+    return await Profesional.find({})
       .populate('area')
       .populate('especialidades')
       .sort({ apellido: 1 });
