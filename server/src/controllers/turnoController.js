@@ -23,7 +23,6 @@ const generarPlan = async (req, res) => {
     }
 };
 
-// ESTA ES LA FUNCIÓN QUE CORREGIMOS PARA EL HISTORIAL
 const listarPorDia = async (req, res) => {
     try {
         const { fecha } = req.query;
@@ -33,7 +32,9 @@ const listarPorDia = async (req, res) => {
         const fechaValida = (fecha && fecha !== "undefined" && fecha !== "null" && fecha !== "") ? fecha : null;
 
         const turnos = await turnoService.obtenerTurnosPorFecha(fechaValida);
-        res.json(turnos);
+        
+        // Retornamos siempre un array seguro para evitar fallas de lectura en el frontend (.map)
+        res.status(200).json(turnos || []);
     } catch (error) {
         console.error("Error en listarPorDia:", error); // Log para debug en consola
         handleControllerError(res, error); 

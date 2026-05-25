@@ -40,30 +40,35 @@ const crearPlanTratamiento = async (datos) => {
 
 // 3. Obtener turnos por fecha (Agenda diaria) o HISTORIAL (si fecha es null)
 const obtenerTurnosPorFecha = async (fecha) => {
-    let query = { estado: { $ne: 'Eliminado' } };
+    try {
+        let query = { estado: { $ne: 'Eliminado' } };
 
-    // Solo si hay una fecha válida, filtramos por rango de día
-    if (fecha) {
-        const inicio = new Date(fecha);
-        inicio.setHours(0, 0, 0, 0);
-        const fin = new Date(fecha);
-        fin.setHours(23, 59, 59, 999);
-        
-        query.fecha = { $gte: inicio, $lte: fin };
+        // Solo si hay una fecha válida, filtramos por rango de día
+        if (fecha) {
+            const inicio = new Date(fecha);
+            inicio.setHours(0, 0, 0, 0);
+            const fin = new Date(fecha);
+            fin.setHours(23, 59, 59, 999);
+            
+            query.fecha = { $gte: inicio, $lte: fin };
+        }
+
+        // Agregamos de forma explícita el campo "activo" al populate del profesional
+        return await Turno.find(query)
+            .populate('paciente', 'nombre apellido')
+            .populate('profesional', 'nombre apellido activo') 
+            .sort({ fecha: -1, hora: 1 });
+    } catch (error) {
+        throw new Error('Error al obtener turnos en la base de datos: ' + error.message);
     }
-
-    // Si fecha es null, query solo tendrá { estado: { $ne: 'Eliminado' } } 
-    // y traerá todo el historial.
-    return await Turno.find(query)
-        .populate('paciente', 'nombre apellido')
-        .populate('profesional', 'nombre apellido')
-        .sort({ fecha: -1, hora: 1 }); // Ordenamos por más recientes primero
 };
 
 // 4. Actualizar datos específicos
 const actualizarTurno = async (id, datosNuevos) => {
     try {
-        return await Turno.findByIdAndUpdate(id, datosNuevos, { new: true, runValidators: true });
+        return await Turno.findByIdAndUpdate(id, datosNuevos, { new: true, runValidators: true })
+            .populate('paciente', 'nombre apellido')
+            .populate('profesional', 'nombre apellido activo');
     } catch (error) {
         throw new Error('Error al actualizar el turno: ' + error.message);
     }
