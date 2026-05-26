@@ -7,13 +7,14 @@ const Agenda = () => {
   const [turnos, setTurnos] = useState([]);
   const [pacientes, setPacientes] = useState([]);
   const [profesionales, setProfesionales] = useState([]);
-  
+
   // Estados de control UI
   const [fechaFiltro, setFechaFiltro] = useState(new Date().toISOString().split('T')[0]);
   const [modalAbierto, setModalAbierto] = useState(false);
   const [tipoRegistro, setTipoRegistro] = useState('individual'); // 'individual' o 'plan'
   const [editandoId, setEditandoId] = useState(null); // ID para saber si editamos
   const [cargando, setCargando] = useState(false);
+  const [toasts, setToasts] = useState([]);
 
   // Estado del Formulario
   const [formTurno, setFormTurno] = useState({
@@ -32,12 +33,21 @@ const Agenda = () => {
     cargarSelectores();
   }, [fechaFiltro]);
 
+  const mostrarToast = (mensaje, tipo = 'exito') => {
+    const nuevoToast = { id: Date.now(), mensaje, tipo };
+    setToasts(prev => [...prev, nuevoToast]);
+    setTimeout(() => {
+      setToasts(prev => prev.filter(t => t.id !== nuevoToast.id));
+    }, 4000);
+  };
+
   const obtenerTurnos = async () => {
     try {
       const res = await axios.get(`${API_URL}?fecha=${fechaFiltro}`);
       setTurnos(res.data);
     } catch (err) {
       console.error("Error al cargar turnos", err);
+      mostrarToast('Error al cargar la grilla de turnos', 'error');
     }
   };
 
@@ -47,10 +57,11 @@ const Agenda = () => {
         axios.get('https://centro-raices-fullstack.onrender.com/api/pacientes'),
         axios.get('https://centro-raices-fullstack.onrender.com/api/profesionales')
       ]);
-      setPacientes(resP.data);
-      setProfesionales(resProf.data);
+      setPacientes(resP.data || []);
+      setProfesionales(resProf.data || []);
     } catch (err) {
       console.error("Error cargando selectores", err);
+      mostrarToast('Error al cargar la lista de pacientes o profesionales', 'error');
     }
   };
 
@@ -60,14 +71,16 @@ const Agenda = () => {
 
   const prepararEdicion = (turno) => {
     setEditandoId(turno._id);
-    setTipoRegistro('individual');
+    // Identificamos dinámicamente si el turno original pertenecía a un plan o admisión individual
+    setTipoRegistro(turno.tipoTurno?.toLowerCase() === 'plan' ? 'plan' : 'individual');
+
     setFormTurno({
       paciente: turno.paciente?._id || '',
       profesional: turno.profesional?._id || '',
-      fecha: turno.fecha.split('T')[0], // Limpia el formato ISO
-      hora: turno.hora,
+      fecha: turno.fecha ? turno.fecha.split('T')[0] : fechaFiltro,
+      hora: turno.hora || '',
       notas: turno.notas || '',
-      sesiones: 1
+      sesiones: 1 // En edición modificamos la sesión individual seleccionada
     });
     setModalAbierto(true);
   };
@@ -75,30 +88,30 @@ const Agenda = () => {
   const handleSubmitTurno = async (e) => {
     e.preventDefault();
     setCargando(true);
-    
+
     try {
       if (editandoId) {
-        // MODO EDICIÓN (PUT)
+        // MODO EDICIÓN (PUT) - Modifica este turno específico (útil para reasignar fechas/profesionales)
         await axios.put(`${API_URL}/${editandoId}`, formTurno);
-        alert('Turno actualizado correctamente 📝');
+        mostrarToast('¡Turno actualizado correctamente! 📝', 'exito');
       } else {
         // MODO NUEVO (POST)
-        const endpoint = tipoRegistro === 'individual' 
-          ? `${API_URL}/admision` 
+        const endpoint = tipoRegistro === 'individual'
+          ? `${API_URL}/admision`
           : `${API_URL}/plan-tratamiento`;
 
-        const payload = tipoRegistro === 'individual' 
-          ? { ...formTurno } 
+        const payload = tipoRegistro === 'individual'
+          ? { ...formTurno }
           : { ...formTurno, fechaInicio: formTurno.fecha };
 
         const res = await axios.post(endpoint, payload);
-        alert(tipoRegistro === 'individual' ? 'Turno agendado! 🎉' : `${res.data.mensaje}`);
+        mostrarToast(tipoRegistro === 'individual' ? '¡Turno agendado con éxito! 🎉' : `${res.data.mensaje}`, 'exito');
       }
-      
+
       cerrarModal();
       obtenerTurnos();
     } catch (err) {
-      alert(err.response?.data?.mensaje || 'Error en la operación');
+      mostrarToast(err.response?.data?.mensaje || 'Error en la operación', 'error');
     } finally {
       setCargando(false);
     }
@@ -107,23 +120,53 @@ const Agenda = () => {
   const cambiarEstado = async (id, nuevoEstado) => {
     try {
       await axios.patch(`${API_URL}/${id}/estado`, { estado: nuevoEstado });
+      mostrarToast(`Estado cambiado a ${nuevoEstado}`, 'info');
       obtenerTurnos();
     } catch (err) {
-      alert("No se pudo cambiar el estado");
+      mostrarToast('No se pudo cambiar el estado del turno', 'error');
     }
   };
 
   const cerrarModal = () => {
     setModalAbierto(false);
-    setEditandoId(null); // Importante: limpiar el ID de edición
+    setEditandoId(null);
     setFormTurno({
       paciente: '', profesional: '', fecha: fechaFiltro,
       hora: '', sesiones: 15, notas: ''
     });
   };
 
+  // FILTRADO SEGURO: Evita romper la app si "formTurno.profesional" o "prof" son indefinidos
+  const profesionalesParaSelector = profesionales.filter(prof => {
+    if (!prof) return false;
+    // Si es un turno nuevo, mostramos solo los activos
+    if (!editandoId) return prof.activo !== false;
+    // Si estamos editando, mostramos activos O al profesional viejo que ya estaba guardado en el turno
+    return prof.activo !== false || (formTurno.profesional && prof._id === formTurno.profesional);
+  });
+
   return (
     <div className="pacientes-container">
+
+      {/* TOASTS GLOBALES */}
+      <div className="toast-container-global">
+        {toasts.map(t => {
+          const iconoClass = {
+            exito: 'fa-solid fa-circle-check',
+            error: 'fa-solid fa-circle-xmark',
+            advertencia: 'fa-solid fa-triangle-exclamation',
+            info: 'fa-solid fa-circle-info'
+          }[t.tipo] || 'fa-solid fa-bell';
+
+          return (
+            <div key={t.id} className={`toast-global ${t.tipo}`}>
+              <i className={iconoClass} style={{ fontSize: '1.2rem', marginRight: '8px' }}></i>
+              <span>{t.mensaje}</span>
+            </div>
+          );
+        })}
+      </div>
+
       <header className="pacientes-header-unified">
         <div className="header-title-group">
           <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="#4A6741" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
@@ -134,19 +177,19 @@ const Agenda = () => {
           </svg>
           <div>
             <h1>Agenda Diaria</h1>
-            <input 
-              type="date" 
+            <input
+              type="date"
               className="agenda-date-picker"
-              value={fechaFiltro} 
+              value={fechaFiltro}
               onChange={(e) => setFechaFiltro(e.target.value)}
             />
           </div>
         </div>
         <div className="btn-group">
-          <button className="btn-secundario" onClick={() => {setTipoRegistro('plan'); setModalAbierto(true)}}>
+          <button className="btn-secundario" onClick={() => { setTipoRegistro('plan'); setModalAbierto(true) }}>
             Generar Plan
           </button>
-          <button className="btn-primario-unified" onClick={() => {setTipoRegistro('individual'); setModalAbierto(true)}}>
+          <button className="btn-primario-unified" onClick={() => { setTipoRegistro('individual'); setModalAbierto(true) }}>
             + Nueva Admisión
           </button>
         </div>
@@ -170,13 +213,29 @@ const Agenda = () => {
             {turnos.length > 0 ? turnos.map(t => (
               <tr key={t._id}>
                 <td className="font-bold">{t.hora} hs</td>
-                <td>{t.paciente?.apellido.toUpperCase()}, {t.paciente?.nombre}</td>
-                <td>{t.profesional?.apellido}</td>
-                <td><span className={`tipo-tag ${t.tipoTurno.toLowerCase()}`}>{t.tipoTurno}</span></td>
                 <td>
-                  <select 
-                    className={`estado-select ${t.estado.toLowerCase()}`}
-                    value={t.estado} 
+                  {t.paciente
+                    ? `${t.paciente.apellido?.toUpperCase()}, ${t.paciente.nombre}`
+                    : <span style={{ color: '#999', italic: 'true' }}>Paciente no encontrado</span>
+                  }
+                </td>
+                <td>
+                  {t.profesional ? (
+                    <>
+                      {t.profesional.apellido}, {t.profesional.nombre}
+                      {t.profesional.activo === false && (
+                        <span style={{ fontSize: '0.8rem', color: '#e74c3c', marginLeft: '5px', fontWeight: 'bold' }}>(Inactivo)</span>
+                      )}
+                    </>
+                  ) : (
+                    <span style={{ fontSize: '0.85rem', color: '#f39c12', fontWeight: 'bold' }}>⚠️ Sin profesional asignado</span>
+                  )}
+                </td>
+                <td><span className={`tipo-tag ${t.tipoTurno?.toLowerCase() || 'individual'}`}>{t.tipoTurno || 'Admisión'}</span></td>
+                <td>
+                  <select
+                    className={`estado-select ${t.estado?.toLowerCase() || 'pendiente'}`}
+                    value={t.estado || 'Pendiente'}
                     onChange={(e) => cambiarEstado(t._id, e.target.value)}
                   >
                     <option value="Pendiente">Pendiente</option>
@@ -186,17 +245,17 @@ const Agenda = () => {
                   </select>
                 </td>
                 <td className="acciones-td">
-                  <button 
-                    className="btn-icon" 
-                    title="Editar Turno" 
+                  <button
+                    className="btn-icon"
+                    title="Modificar Turno o Fecha/Profesional"
                     onClick={() => prepararEdicion(t)}
                   >
-                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path></svg>
+                    <i className="fa-solid fa-pen-to-square" style={{ fontSize: '16px' }}></i>
                   </button>
                 </td>
               </tr>
             )) : (
-              <tr><td colSpan="6" style={{textAlign: 'center', padding: '50px', color: '#999'}}>No hay turnos agendados para este día</td></tr>
+              <tr><td colSpan="6" style={{ textAlign: 'center', padding: '50px', color: '#999' }}>No hay turnos agendados para este día</td></tr>
             )}
           </tbody>
         </table>
@@ -206,12 +265,12 @@ const Agenda = () => {
         <div className="modal-overlay">
           <div className="modal-content animate-slide">
             <div className="modal-header">
-              <h2>{editandoId ? 'Editar Turno' : (tipoRegistro === 'individual' ? 'Nueva Admisión' : 'Generar Plan')}</h2>
+              <h2>{editandoId ? 'Modificar Turno / Reasignar' : (tipoRegistro === 'individual' ? 'Nueva Admisión' : 'Generar Plan')}</h2>
               <button className="btn-cerrar" onClick={cerrarModal}>&times;</button>
             </div>
             <form onSubmit={handleSubmitTurno}>
               <h3 className="section-title-unified">
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>
+                <i className="fa-solid fa-calendar-check" style={{ marginRight: '8px', color: '#4A6741' }}></i>
                 Asignación de Turno
               </h3>
 
@@ -220,7 +279,7 @@ const Agenda = () => {
                   <label>Paciente *</label>
                   <select name="paciente" value={formTurno.paciente} onChange={handleChange} required>
                     <option value="">Seleccionar...</option>
-                    {pacientes.map(p => <option key={p._id} value={p._id}>{p.apellido.toUpperCase()}, {p.nombre}</option>)}
+                    {pacientes.map(p => <option key={p._id} value={p._id}>{p.apellido?.toUpperCase()}, {p.nombre}</option>)}
                   </select>
                 </div>
 
@@ -228,12 +287,17 @@ const Agenda = () => {
                   <label>Profesional *</label>
                   <select name="profesional" value={formTurno.profesional} onChange={handleChange} required>
                     <option value="">Seleccionar...</option>
-                    {profesionales.map(prof => <option key={prof._id} value={prof._id}>{prof.apellido}, {prof.nombre}</option>)}
+                    {profesionales
+                      .filter(p => p.activo !== false).map(prof => (
+                        <option key={prof._id} value={prof._id}>
+                          {prof.apellido}, {prof.nombre} {prof.activo === false ? ' (INACTIVO)' : ''}
+                        </option>
+                      ))}
                   </select>
                 </div>
 
                 <div className="form-group">
-                  <label>{tipoRegistro === 'individual' ? 'Fecha' : 'Fecha de Inicio'} *</label>
+                  <label>{editandoId ? 'Cambiar Fecha' : (tipoRegistro === 'individual' ? 'Fecha' : 'Fecha de Inicio')} *</label>
                   <input type="date" name="fecha" value={formTurno.fecha} onChange={handleChange} required />
                 </div>
 

@@ -9,22 +9,46 @@ const Pacientes = () => {
   const [modalDetalle, setModalDetalle] = useState(false);
   const [modoEdicion, setModoEdicion] = useState(false);
   const [pacienteSeleccionado, setPacienteSeleccionado] = useState(null);
+  
+  // ESTADOS DE FILTRADO Y TOASTS
+  const [verInhabilitados, setVerInhabilitados] = useState(false);
+  const [toasts, setToasts] = useState([]);
+
+  // NUEVO ESTADO: Control del modal de confirmación personalizado sin window.confirm
+  const [confirmarModal, setConfirmarModal] = useState({
+    abierto: false,
+    paciente: null,
+    accion: '' // 'inhabilitar' o 'reactivar'
+  });
+
   const [form, setForm] = useState({
     nombre: '', apellido: '', dni: '', fechaNacimiento: '', telefono: '', email: '',
     poseeObraSocial: false, obraSocial: '', nroAfiliado: '',
     poseeCUD: false, nroCUD: '', vencimientoCUD: '',
-    cudDiagnostico: '', cudDescripcion: '', notas: ''
+    cudDiagnostico: '', cudDescripcion: '', notas: '',
+    activo: true
   });
 
   const API_URL = 'https://centro-raices-fullstack.onrender.com/api/pacientes';
 
   useEffect(() => { obtenerPacientes(); }, []);
 
+  const mostrarToast = (mensaje, tipo = 'exito') => {
+    const nuevoToast = { id: Date.now(), mensaje, tipo };
+    setToasts(prev => [...prev, nuevoToast]);
+    setTimeout(() => {
+      setToasts(prev => prev.filter(t => t.id !== nuevoToast.id));
+    }, 4000);
+  };
+
   const obtenerPacientes = async () => {
     try {
       const res = await axios.get(API_URL);
       setPacientes(res.data);
-    } catch (err) { console.error("Error al cargar", err); }
+    } catch (err) { 
+      console.error("Error al cargar", err); 
+      mostrarToast('Error al conectar con el servidor', 'error');
+    }
   };
 
   const calcularEdad = (fecha) => {
@@ -42,22 +66,35 @@ const Pacientes = () => {
     setForm({ ...form, [name]: type === 'checkbox' ? checked : value });
   };
 
-  const eliminarPaciente = async (id) => {
-    if (window.confirm("¿Estás seguro de eliminar este paciente?")) {
-      try {
-        await axios.delete(`${API_URL}/${id}`);
-        alert('Paciente eliminado correctamente 🗑️');
-        obtenerPacientes();
-      } catch (err) {
-        alert('Error al eliminar el paciente');
-      }
+  // DISPARADOR DEL MODAL PERSONALIZADO
+  const abrirConfirmarEstado = (paciente) => {
+    setConfirmarModal({
+      abierto: true,
+      paciente: paciente,
+      accion: paciente.activo === false ? 'reactivar' : 'inhabilitar'
+    });
+  };
+
+  // EJECUCIÓN ASÍNCRONA DESDE EL MODAL PROPIO
+  const ejecutarCambioEstado = async () => {
+    const { paciente, accion } = confirmarModal;
+    const nuevoEstado = accion === 'reactivar';
+
+    try {
+      await axios.put(`${API_URL}/${paciente._id}`, { ...paciente, activo: nuevoEstado });
+      mostrarToast(
+        nuevoEstado ? '¡Paciente reactivado con éxito!' : 'Paciente inhabilitado correctamente', 
+        nuevoEstado ? 'info' : 'advertencia'
+      );
+      setConfirmarModal({ abierto: false, paciente: null, accion: '' });
+      obtenerPacientes();
+    } catch (err) {
+      mostrarToast('Error al cambiar el estado del paciente', 'error');
     }
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-
-    // FORMATEO A MAYÚSCULAS: Forzamos que nombre y apellido viajen limpios en mayúscula a la BD
     const datosAEnviar = {
       ...form,
       nombre: form.nombre.trim().toUpperCase(),
@@ -67,15 +104,15 @@ const Pacientes = () => {
     try {
       if (modoEdicion) {
         await axios.put(`${API_URL}/${pacienteSeleccionado._id}`, datosAEnviar);
-        alert('¡Datos actualizados correctamente! 🔄');
+        mostrarToast('¡Datos actualizados correctamente!', 'exito');
       } else {
         await axios.post(API_URL, datosAEnviar);
-        alert('¡Paciente registrado con éxito! 🎉');
+        mostrarToast('¡Paciente registrado con éxito!', 'exito');
       }
       cerrarModal();
       obtenerPacientes();
     } catch (err) {
-      alert(err.response?.data?.mensaje || 'Error en la operación');
+      mostrarToast(err.response?.data?.mensaje || 'Error en la operación', 'error');
     }
   };
 
@@ -104,15 +141,41 @@ const Pacientes = () => {
       nombre: '', apellido: '', dni: '', fechaNacimiento: '', telefono: '', email: '',
       poseeObraSocial: false, obraSocial: '', nroAfiliado: '',
       poseeCUD: false, nroCUD: '', vencimientoCUD: '',
-      cudDiagnostico: '', cudDescripcion: '', notas: ''
+      cudDiagnostico: '', cudDescripcion: '', notas: '',
+      activo: true
     });
   };
 
+  const pacientesFiltrados = pacientes.filter(p => {
+    if (verInhabilitados) return p.activo === false;
+    return p.activo !== false;
+  });
+
   return (
     <div className="pacientes-container">
-      {/* HEADER UNIFICADO CON "CONFIGURACIÓN DE ÁREAS" */}
+      
+      {/* TOASTS GLOBALES CON ÍCONOS FONT AWESOME */}
+      <div className="toast-container-global">
+        {toasts.map(t => {
+          const iconoClass = {
+            exito: 'fa-solid fa-circle-check',
+            error: 'fa-solid fa-circle-xmark',
+            advertencia: 'fa-solid fa-triangle-exclamation',
+            info: 'fa-solid fa-circle-info'
+          }[t.tipo] || 'fa-solid fa-bell';
+
+          return (
+            <div key={t.id} className={`toast-global ${t.tipo}`}>
+              <i className={iconoClass} style={{ fontSize: '1.2rem', marginRight: '8px' }}></i>
+              <span>{t.mensaje}</span>
+            </div>
+          );
+        })}
+      </div>
+
       <header className="pacientes-header-unified">
         <div className="header-title-group">
+          {/* Conservamos el SVG estructural de la cabecera por consistencia de tamaños */}
           <svg className="header-icon" width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="#4A6741" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
             <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
             <circle cx="9" cy="7" r="4"></circle>
@@ -124,9 +187,26 @@ const Pacientes = () => {
             <p className="subtitle">Gestión integral de la base de datos de pacientes</p>
           </div>
         </div>
-        <button className="btn-primario-unified" onClick={() => setModalAbierto(true)}>
-          + Registrar Nuevo Paciente
-        </button>
+        
+        <div className="header-actions-group" style={{ display: 'flex', alignItems: 'center', gap: '20px' }}>
+          <div className="form-check-wrapper switch-filtro-profesionales" style={{ margin: 0 }}>
+            <label className="switch">
+              <input 
+                type="checkbox" 
+                checked={verInhabilitados} 
+                onChange={(e) => setVerInhabilitados(e.target.checked)} 
+              />
+              <span className="slider round" style={{ backgroundColor: verInhabilitados ? '#e67e22' : '#ccc' }}></span>
+            </label>
+            <span style={{ fontWeight: 600, color: verInhabilitados ? '#e67e22' : '#555' }}>
+              {verInhabilitados ? "Viendo Pacientes Inhabilitados" : "Viendo Pacientes Activos"}
+            </span>
+          </div>
+
+          <button className="btn-primario-unified" onClick={() => setModalAbierto(true)}>
+            + Registrar Nuevo Paciente
+          </button>
+        </div>
       </header>
 
       <div className="header-line"></div>
@@ -143,32 +223,116 @@ const Pacientes = () => {
             </tr>
           </thead>
           <tbody>
-            {pacientes.map(p => (
-              <tr key={p._id}>
-                <td className="font-bold">{p.apellido.toUpperCase()}, {p.nombre.toUpperCase()}</td>
-                <td>{p.dni}</td>
-                <td>{calcularEdad(p.fechaNacimiento)}</td>
-                <td>
-                  {p.poseeCUD ? <span className="badge vigent">Vigente</span> : <span className="badge none">No posee</span>}
-                </td>
-                <td className="acciones-td">
-                  <button className="btn-icon" onClick={() => abrirDetalle(p)} title="Ver más">
-                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle></svg>
-                  </button>
-                  <button className="btn-icon" onClick={() => abrirEditar(p)} title="Editar">
-                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path></svg>
-                  </button>
-                  <button className="btn-icon danger" onClick={() => eliminarPaciente(p._id)} title="Eliminar">
-                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>
-                  </button>
+            {pacientesFiltrados.length === 0 ? (
+              <tr>
+                <td colSpan="5" style={{ textAlign: 'center', padding: '30px', color: '#888', fontWeight: 500 }}>
+                  {verInhabilitados ? "No hay pacientes inhabilitados registrados." : "No hay pacientes activos registrados."}
                 </td>
               </tr>
-            ))}
+            ) : (
+              pacientesFiltrados.map(p => (
+                <tr key={p._id} className={p.activo === false ? "fila-inhabilitada" : ""}>
+                  <td className="font-bold" style={{ opacity: p.activo === false ? 0.6 : 1 }}>
+                    {p.apellido.toUpperCase()}, {p.nombre.toUpperCase()} {p.activo === false && "(Inhabilitado)"}
+                  </td>
+                  <td style={{ opacity: p.activo === false ? 0.6 : 1 }}>{p.dni}</td>
+                  <td style={{ opacity: p.activo === false ? 0.6 : 1 }}>{calcularEdad(p.fechaNacimiento)}</td>
+                  <td>
+                    {p.poseeCUD ? <span className="badge vigent">Vigente</span> : <span className="badge none">No posee</span>}
+                  </td>
+                  <td className="acciones-td">
+                    <button className="btn-icon" onClick={() => abrirDetalle(p)} title="Ver más">
+                      <i className="fa-solid fa-eye" style={{ fontSize: '16px' }}></i>
+                    </button>
+                    
+                    {p.activo !== false && (
+                      <button className="btn-icon" onClick={() => abrirEditar(p)} title="Editar">
+                        <i className="fa-solid fa-pen-to-square" style={{ fontSize: '16px' }}></i>
+                      </button>
+                    )}
+
+                    <button 
+                      className={`btn-icon ${p.activo === false ? "success" : "danger"}`} 
+                      onClick={() => abrirConfirmarEstado(p)} 
+                      title={p.activo === false ? "Reactivar Paciente" : "Inhabilitar Paciente"}
+                    >
+                      <i 
+                        className={p.activo === false ? "fa-solid fa-rotate-left" : "fa-solid fa-trash-can"} 
+                        style={{ fontSize: '16px' }}
+                      ></i>
+                    </button>
+                  </td>
+                </tr>
+              ))
+            )}
           </tbody>
         </table>
       </div>
 
-      {/* MODAL FORMULARIO CON COHERENCIA VISUAL */}
+      {/* MODAL DE CONFIRMACIÓN CON ÍCONOS DE FONT AWESOME */}
+      {confirmarModal.abierto && (
+        <div className="modal-overlay" style={{ zIndex: 10000 }}>
+          <div className="modal-content animate-slide" style={{ maxWidth: '450px', textAlign: 'center', padding: '30px' }}>
+            
+            <div style={{
+              width: '70px',
+              height: '70px',
+              borderRadius: '50%',
+              backgroundColor: confirmarModal.accion === 'inhabilitar' ? '#fde8e8' : '#eaf2e8',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              margin: '0 auto 20px auto'
+            }}>
+              <i 
+                className={confirmarModal.accion === 'inhabilitar' ? "fa-solid fa-user-slash" : "fa-solid fa-user-check"} 
+                style={{ 
+                  fontSize: '26px', 
+                  color: confirmarModal.accion === 'inhabilitar' ? '#e53935' : '#4A6741' 
+                }}
+              ></i>
+            </div>
+
+            <h2 style={{ fontSize: '1.4rem', fontWeight: '700', marginBottom: '10px', color: '#1e272c' }}>
+              {confirmarModal.accion === 'inhabilitar' ? '¿Confirmar inhabilitación?' : '¿Confirmar reactivación?'}
+            </h2>
+            <p style={{ color: '#555', fontSize: '0.95rem', lineHeight: '1.5', marginBottom: '25px' }}>
+              Se dará de {confirmarModal.accion === 'inhabilitar' ? 'baja' : 'alta'} a la ficha del paciente{' '}
+              <strong>
+                {confirmarModal.paciente?.apellido.toUpperCase()}, {confirmarModal.paciente?.nombre.toUpperCase()}
+              </strong>.
+            </p>
+            <div style={{ display: 'flex', gap: '12px', justifyContent: 'center' }}>
+              <Button 
+                type="button" 
+                className="btn-cancel" 
+                onClick={() => setConfirmarModal({ abierto: false, paciente: null, accion: '' })}
+                style={{ padding: '10px 24px' }}
+              >
+                Cancelar
+              </Button>
+              <button 
+                type="button" 
+                className="btn-primario-unified"
+                onClick={ejecutarCambioEstado}
+                style={{ 
+                  padding: '10px 24px', 
+                  backgroundColor: confirmarModal.accion === 'inhabilitar' ? '#d32f2f' : '#4A6741',
+                  color: '#fff',
+                  border: 'none',
+                  borderRadius: '6px',
+                  fontWeight: '600',
+                  cursor: 'pointer'
+                }}
+              >
+                Confirmar
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* MODAL FORMULARIO */}
       {modalAbierto && (
         <div className="modal-overlay">
           <div className="modal-content animate-slide">
@@ -178,7 +342,7 @@ const Pacientes = () => {
             </div>
             <form onSubmit={handleSubmit}>
               <h3 className="section-title-unified">
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>
+                <i className="fa-solid fa-user" style={{ marginRight: '8px', color: '#4A6741' }}></i>
                 Datos Personales
               </h3>
               <div className="form-grid">
@@ -191,7 +355,7 @@ const Pacientes = () => {
               </div>
 
               <h3 className="section-title-unified">
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M22 12h-4l-3 9L9 3l-3 9H2"></path></svg>
+                <i className="fa-solid fa-heart-pulse" style={{ marginRight: '8px', color: '#4A6741' }}></i>
                 Cobertura Médica
               </h3>
               <div className="form-check-wrapper">
@@ -211,7 +375,7 @@ const Pacientes = () => {
               )}
 
               <h3 className="section-title-unified">
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line><polyline points="10 9 9 9 8 9"></polyline></svg>
+                <i className="fa-solid fa-id-card" style={{ marginRight: '8px', color: '#4A6741' }}></i>
                 Información CUD
               </h3>
               <div className="form-check-wrapper">
@@ -234,7 +398,6 @@ const Pacientes = () => {
 
               <div className="form-group mt-4"><label>Notas Adicionales</label><textarea name="notas" value={form.notas} onChange={handleChange} rows="2"></textarea></div>
 
-              {/* REEMPLAZO CON TU COMPONENTE REUTILIZABLE BUTTON */}
               <div className="modal-footer">
                 <Button type="button" className="btn-cancel" onClick={cerrarModal}>
                   Cancelar
@@ -248,7 +411,7 @@ const Pacientes = () => {
         </div>
       )}
 
-      {/* MODAL DETALLE (VER MÁS) */}
+      {/* MODAL DETALLE */}
       {modalDetalle && pacienteSeleccionado && (
         <div className="modal-overlay">
           <div className="modal-content detail-view animate-fade">

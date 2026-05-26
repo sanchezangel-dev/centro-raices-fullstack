@@ -1,0 +1,71 @@
+/* ==========================================================================
+   ESTILOS GLOBALES PARA COMPONENTE TOAST (NOTIFICACIONES)
+   ========================================================================== */
+
+.toast-container-global {
+    position: fixed;
+    top: 24px;
+    right: 24px;
+    z-index: 9999; /* Asegura que flote por encima de cualquier modal o tabla */
+    pointer-events: none; /* Evita que moleste si hacés clic cerca */
+}
+
+.toast-global {
+    pointer-events: auto; /* Permite interactuar con el cartel si hiciera falta */
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    min-width: 300px;
+    max-width: 450px;
+    padding: 16px 20px;
+    border-radius: 8px;
+    /* Un sombreado un poco más marcado para que se separe bien del fondo blanco de la app */
+    box-shadow: 0 12px 30px rgba(0, 0, 0, 0.15), 0 4px 12px rgba(0, 0, 0, 0.08);
+    font-weight: 600; /* Le subimos un toque el peso a la fuente para que resalte en blanco */
+    font-size: 0.95rem;
+    
+    /* Animación de entrada fluida desde la derecha */
+    animation: toastSlideIn 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
+}
+
+/* --- VARIACIONES DE COLOR SÓLIDAS CON TEXTO BLANCO --- */
+
+/* Éxito (Verde Institucional Raíces) */
+.toast-global.exito {
+    background-color: #4A6741;
+    color: #ffffff;
+    border: 1px solid #3d5535;
+}
+
+/* Error / Peligro (Rojo) */
+.toast-global.error {
+    background-color: #e53935;
+    color: #ffffff;
+    border: 1px solid #c62828;
+}
+
+/* Advertencia (Amarillo / Naranja) */
+.toast-global.advertencia {
+    background-color: #ffb300;
+    color: #ffffff; /* Si el amarillo es muy claro, podés probar #1e272c para legibilidad, pero con #ffb300 robusto va bien */
+    border: 1px solid #f5a000;
+}
+
+/* Información (Azul) */
+.toast-global.info {
+    background-color: #1e88e5;
+    color: #ffffff;
+    border: 1px solid #1565c0;
+}
+
+/* --- ANIMACIÓN --- */
+@keyframes toastSlideIn {
+    from {
+        transform: translateX(120%);
+        opacity: 0;
+    }
+    to {
+        transform: translateX(0);
+        opacity: 1;
+    }
+}
