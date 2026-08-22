@@ -48,6 +48,7 @@
 }
 .btn-secundario:hover { background: var(--primary-light); }
 
+
 .btn-group {
     display: flex;
     align-items: center;
